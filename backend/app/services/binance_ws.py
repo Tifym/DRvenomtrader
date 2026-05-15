@@ -108,6 +108,12 @@ class BinanceWSConnector:
                 elif "@forceOrder" in stream:
                     await self._handle_liquidation(data)
 
+                # Periodic debug log (every 100 messages) to avoid flooding but verify it's working
+                if not hasattr(self, "_msg_count"): self._msg_count = 0
+                self._msg_count += 1
+                if self._msg_count % 100 == 0:
+                    logger.info("Binance WS messages processed", count=self._msg_count, last_stream=stream)
+
             except json.JSONDecodeError:
                 logger.warning("Failed to parse Binance message")
             except Exception as e:

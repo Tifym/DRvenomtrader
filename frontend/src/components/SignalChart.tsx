@@ -61,7 +61,7 @@ export default function SignalChart({ symbol, price, signals }: SignalChartProps
         if (res.ok) {
           const data = await res.json();
           const chartData = data.candles.map((c: any) => ({
-            time: (c.timestamp / 1000) as Time,
+            time: (c.open_time / 1000) as Time,
             open: c.open,
             high: c.high,
             low: c.low,

@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     discord_webhook_url: str = Field(default="", alias="DISCORD_WEBHOOK_URL")
 
     # --- Trading Config ---
-    default_symbols: List[str] = ["BTCUSDT", "ETHUSDT"]
+    default_symbols: List[str] = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"]
 
     model_config = {
         "env_file": ".env",
