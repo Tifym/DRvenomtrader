@@ -21,7 +21,7 @@ interface UseWebSocketReturn {
 
 const EMPTY_SIGNALS: AllSignals = { ALFA: {}, BETA: {}, DELTA: {}, GAMMA: {} };
 
-export function useWebSocket(symbol: string): UseWebSocketReturn {
+export function useWebSocket(symbol: string, exchange: string = "Both"): UseWebSocketReturn {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [connected, setConnected] = useState(false);
@@ -59,7 +59,13 @@ export function useWebSocket(symbol: string): UseWebSocketReturn {
             }
             break;
           case "price_update":
-            if (msg.data) setPrice(msg.data as PriceData);
+            if (msg.data) {
+              const p = msg.data as PriceData;
+              // Filter by exchange if not "Both"
+              if (exchange === "Both" || p.source?.toLowerCase() === exchange.toLowerCase()) {
+                setPrice(p);
+              }
+            }
             break;
           case "alert":
             if (msg.data) {

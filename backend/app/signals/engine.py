@@ -15,6 +15,7 @@ from app.signals.beta import BetaSignal
 from app.signals.delta import DeltaSignal
 from app.signals.gamma import GammaSignal
 from app.signals.base import SignalResult
+from app.ws.manager import ws_manager
 
 logger = structlog.get_logger()
 
@@ -79,6 +80,8 @@ class SignalEngine:
                         timeframe=result.timeframe,
                         signal_data=result.to_dict(),
                     )
+                    # Broadcast to WS clients
+                    await ws_manager.broadcast_signal(symbol, result.to_dict())
             except Exception as e:
                 logger.error("Signal compute error", module=module.SIGNAL_TYPE, error=str(e))
 

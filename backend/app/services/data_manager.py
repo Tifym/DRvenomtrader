@@ -12,6 +12,7 @@ from app.config import settings
 from app.services.binance_ws import BinanceWSConnector
 from app.services.bybit_ws import BybitWSConnector
 from app.services.candle_cache import CandleCache
+from app.ws.manager import ws_manager
 
 logger = structlog.get_logger()
 
@@ -87,6 +88,8 @@ class DataManager:
     async def _on_price(self, price_data: dict) -> None:
         """Process incoming price update."""
         await CandleCache.store_price(price_data)
+        # Broadcast to connected WS clients
+        await ws_manager.broadcast_price(price_data["symbol"], price_data)
 
     async def _on_liquidation(self, liq: dict) -> None:
         """Process incoming liquidation event."""

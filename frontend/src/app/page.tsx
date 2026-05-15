@@ -15,7 +15,7 @@ const SIGNAL_TYPES: SignalType[] = ["ALFA", "BETA", "DELTA", "GAMMA"];
 export default function Dashboard() {
   const [symbol, setSymbol] = useState(SYMBOLS[0]);
   const [exchange, setExchange] = useState("Both");
-  const { signals, price, connected, alerts } = useWebSocket(symbol);
+  const { signals, price, connected, alerts } = useWebSocket(symbol, exchange);
 
   const totalBull = Object.values(signals).reduce(
     (sum, tfs) => sum + Object.values(tfs).filter((s: any) => s?.direction === "LONG").length,

@@ -21,6 +21,7 @@ export interface PriceData {
   index_price?: number;
   funding_rate?: number;
   timestamp: number;
+  source?: string;
 }
 
 export interface SignalsByType {
