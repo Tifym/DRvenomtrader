@@ -8,7 +8,14 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import type { WSMessage, AllSignals, PriceData } from "@/types/signals";
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000";
+const getWsUrl = () => {
+  if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
+  if (typeof window === "undefined") return "ws://localhost:8000";
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${protocol}//${window.location.host}`;
+};
+
+const WS_URL = getWsUrl();
 const RECONNECT_INTERVAL = 3000;
 
 interface UseWebSocketReturn {

@@ -50,8 +50,13 @@ export default function SignalChart({ symbol, price, signals }: SignalChartProps
     const fetchCandles = async () => {
       try {
         setLoading(true);
-        // Using Next.js rewrites or absolute URL. Assuming backend is on port 8000 for local dev or same host
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+        // Using Next.js rewrites or absolute URL.
+        const getApiUrl = () => {
+          if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+          if (typeof window === "undefined") return "http://localhost:8000/api";
+          return `${window.location.protocol}//${window.location.host}/api`;
+        };
+        const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/candles/${symbol}/1m?limit=150`);
         if (res.ok) {
           const data = await res.json();

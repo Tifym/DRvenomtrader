@@ -128,6 +128,7 @@ class BinanceWSConnector:
             "volume": float(k.get("v", 0)),
             "is_closed": k.get("x", False),
             "timestamp": time.time(),
+            "source": "binance",
         }
         if self.on_candle:
             await self.on_candle(candle)
@@ -140,6 +141,7 @@ class BinanceWSConnector:
             "index_price": float(data.get("i", 0)),
             "funding_rate": float(data.get("r", 0)),
             "timestamp": data.get("E", 0),
+            "source": "binance",
         }
         if self.on_price:
             await self.on_price(price_data)
@@ -155,6 +157,7 @@ class BinanceWSConnector:
             "usd_value": float(o.get("p", 0)) * float(o.get("q", 0)),
             "trade_time": o.get("T", 0),
             "timestamp": time.time(),
+            "source": "binance",
         }
         if self.on_liquidation:
             await self.on_liquidation(liq)
