@@ -120,8 +120,8 @@ class CoinGlassClient:
             "source": "coinglass",
         }
 
-    async def fetch_liquidation_map(self, symbol: str) -> Optional[Dict]:
-        """One-shot fetch for liquidation heatmap data."""
+    async def get_liquidation_history(self, symbol: str, timeframe: str) -> Optional[Dict]:
+        """Fetch liquidation history for a specific symbol and timeframe."""
         if not self.is_available:
             return None
         if not self._client:
@@ -129,14 +129,36 @@ class CoinGlassClient:
 
         try:
             resp = await self._client.get(
-                f"{COINGLASS_BASE}/futures/liquidation/v2/order",
-                params={"symbol": symbol.replace("USDT", "")},
+                f"{COINGLASS_BASE}/futures/liquidation/v2/history",
+                params={"symbol": symbol.replace("USDT", ""), "timeType": timeframe},
+                headers=self._headers,
+            )
+            if resp.status_code == 200:
+                result = resp.json()
+                if result.get("code") == "0" and result.get("data"):
+                    return result["data"]
+            elif resp.status_code == 429:
+                logger.warning("CoinGlass rate limited")
+        except Exception as e:
+            logger.error("CoinGlass history error", symbol=symbol, error=str(e))
+        return None
+
+    async def get_aggregated_liquidations(self) -> Optional[Dict]:
+        """Fetch globally aggregated liquidations."""
+        if not self.is_available:
+            return None
+        if not self._client:
+            self._client = httpx.AsyncClient(timeout=10.0)
+
+        try:
+            resp = await self._client.get(
+                f"{COINGLASS_BASE}/futures/liquidation/v2/aggregated",
                 headers=self._headers,
             )
             if resp.status_code == 200:
                 return resp.json().get("data")
         except Exception as e:
-            logger.error("CoinGlass map fetch error", error=str(e))
+            logger.error("CoinGlass aggregated error", error=str(e))
         return None
 
     async def stop(self) -> None:
