@@ -23,7 +23,7 @@ const EMPTY_SIGNALS: AllSignals = { ALFA: {}, BETA: {}, DELTA: {}, GAMMA: {} };
 
 export function useWebSocket(symbol: string): UseWebSocketReturn {
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectRef = useRef<ReturnType<typeof setTimeout>>();
+  const reconnectRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [connected, setConnected] = useState(false);
   const [signals, setSignals] = useState<AllSignals>(EMPTY_SIGNALS);
   const [price, setPrice] = useState<PriceData | null>(null);
