@@ -16,7 +16,7 @@ export default function ConfluencePanel({ signals, symbol }: ConfluencePanelProp
   for (const [sigType, tfs] of Object.entries(signals)) {
     for (const [tf, sig] of Object.entries(tfs)) {
       const s = sig as any;
-      if (s && s.direction && s.direction !== "NEUTRAL") {
+      if (s && typeof s === 'object' && 'direction' in s && s.direction !== "NEUTRAL") {
         allActive.push({ type: sigType, tf, dir: s.direction, strength: s.strength ?? 0 });
       }
     }
