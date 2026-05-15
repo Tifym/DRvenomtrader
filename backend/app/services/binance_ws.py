@@ -63,11 +63,8 @@ class BinanceWSConnector:
     def _normalize_timeframe(tf: str) -> Optional[str]:
         """Convert our timeframe format to Binance's format."""
         mapping = {
-            "1m": "1m", "3m": "3m", "5m": "5m", "6m": "5m",  # 6m approximated
-            "12m": "15m",  # 12m approximated to 15m
-            "15m": "15m", "24m": "30m",  # 24m approximated to 30m
-            "30m": "30m", "1H": "1h", "2H": "2h", "3H": "4h",  # 3H approx
-            "4H": "4h", "1D": "1d",
+            "1m": "1m", "3m": "3m", "5m": "5m", "15m": "15m", 
+            "30m": "30m", "1H": "1h", "2H": "2h", "4H": "4h", "1D": "1d",
         }
         return mapping.get(tf)
 

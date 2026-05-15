@@ -18,8 +18,8 @@ from app.signals.base import SignalResult
 
 logger = structlog.get_logger()
 
-# All timeframes that need candle data
-CANDLE_TIMEFRAMES = ["1D", "4H", "3H", "2H", "1H", "24m", "15m", "12m", "6m", "5m", "3m", "1m"]
+# All supported timeframes across signals (Binance native)
+CANDLE_TIMEFRAMES = ["1D", "4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"]
 COMPUTE_INTERVAL = 5  # seconds between signal computation cycles
 
 

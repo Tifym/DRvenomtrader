@@ -37,7 +37,7 @@ def compute_bollinger_bands(closes: np.ndarray, period: int = BB_PERIOD, std_dev
 class DeltaSignal(BaseSignal):
     """DELTA Signal — Bollinger Bands touch/breakout detection."""
     SIGNAL_TYPE = "DELTA"
-    TIMEFRAMES = ["1H", "24m", "12m", "6m", "3m", "1m"]
+    TIMEFRAMES = ["4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"]
 
     async def compute(self, symbol: str, timeframe: str, candles: List[dict]) -> Optional[SignalResult]:
         if len(candles) < BB_PERIOD + 5:

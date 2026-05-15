@@ -15,7 +15,7 @@ logger = structlog.get_logger()
 class GammaSignal(BaseSignal):
     """GAMMA Signal — Liquidation imbalance detection."""
     SIGNAL_TYPE = "GAMMA"
-    TIMEFRAMES = ["1D", "4H", "1H", "15m", "5m", "3m", "1m"]
+    TIMEFRAMES = ["1D", "4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"]
 
     async def compute(self, symbol: str, timeframe: str, candles: List[dict] = None) -> Optional[SignalResult]:
         """Compute GAMMA from aggregated liquidation data in Redis."""

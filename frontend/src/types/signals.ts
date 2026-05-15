@@ -61,8 +61,8 @@ export const SIGNAL_META: Record<SignalType, { name: string; description: string
 };
 
 export const TIMEFRAMES_BY_SIGNAL: Record<SignalType, string[]> = {
-  ALFA: ["1D", "4H", "3H", "2H", "1H", "24m", "12m", "6m", "3m", "1m"],
-  BETA: ["1H", "24m", "12m", "6m", "3m", "1m"],
-  DELTA: ["1H", "24m", "12m", "6m", "3m", "1m"],
-  GAMMA: ["1D", "4H", "1H", "15m", "5m", "3m", "1m"],
+  ALFA: ["1D", "4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"],
+  BETA: ["4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"],
+  DELTA: ["4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"],
+  GAMMA: ["1D", "4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"],
 };

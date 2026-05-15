@@ -11,14 +11,13 @@ from typing import List
 from app.config import settings
 from app.services.binance_ws import BinanceWSConnector
 from app.services.bybit_ws import BybitWSConnector
-from app.services.coinglass import CoinGlassClient
 from app.services.candle_cache import CandleCache
 
 logger = structlog.get_logger()
 
 # All supported timeframes across signals
 ALL_TIMEFRAMES = [
-    "1D", "4H", "3H", "2H", "1H", "24m", "15m", "12m", "6m", "5m", "3m", "1m",
+    "1D", "4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"
 ]
 
 
@@ -47,10 +46,6 @@ class DataManager:
             on_price=self._on_price,
             on_liquidation=self._on_liquidation,
         )
-        self.coinglass = CoinGlassClient(
-            symbols=self.symbols,
-            on_liquidation_update=self._on_coinglass_liq,
-        )
 
     async def start(self) -> None:
         """Start all data source connections as background tasks."""
@@ -66,14 +61,6 @@ class DataManager:
             asyncio.create_task(self.bybit.connect(), name="bybit_ws")
         )
 
-        # Liquidation polling (CoinGlass)
-        if self.coinglass.is_available:
-            self._tasks.append(
-                asyncio.create_task(self.coinglass.start(), name="coinglass")
-            )
-        else:
-            logger.info("CoinGlass not configured, using exchange-direct liquidation data only")
-
         logger.info("DataManager started", tasks=len(self._tasks))
 
     async def stop(self) -> None:
@@ -81,7 +68,6 @@ class DataManager:
         logger.info("DataManager stopping")
         await self.binance.disconnect()
         await self.bybit.disconnect()
-        await self.coinglass.stop()
 
         for task in self._tasks:
             task.cancel()
@@ -105,14 +91,3 @@ class DataManager:
     async def _on_liquidation(self, liq: dict) -> None:
         """Process incoming liquidation event."""
         await CandleCache.store_liquidation(liq)
-
-    async def _on_coinglass_liq(self, liq_data: dict) -> None:
-        """Process CoinGlass aggregated liquidation update."""
-        symbol = liq_data.get("symbol", "")
-        # Store as a special signal-ready format
-        await CandleCache.store_signal(
-            symbol=symbol,
-            signal_type="GAMMA_RAW",
-            timeframe="aggregate",
-            signal_data=liq_data,
-        )

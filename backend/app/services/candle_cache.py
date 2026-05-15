@@ -91,39 +91,61 @@ class CandleCache:
 
     @staticmethod
     async def store_liquidation(liq: dict) -> None:
-        """Store a liquidation event and update aggregates."""
+        """Store a liquidation event in a sorted set for true rolling window."""
         redis = await RedisManager.get_client()
         symbol = liq["symbol"]
-
-        # Store in liquidation stream (capped list)
         stream_key = LIQ_STREAM_KEY.format(symbol=symbol)
-        await redis.lpush(stream_key, json.dumps(liq))
-        await redis.ltrim(stream_key, 0, 999)  # Keep last 1000 events
+
+        timestamp = liq.get("timestamp", time.time())
+        value = json.dumps(liq)
+
+        # Store with timestamp as score
+        await redis.zadd(stream_key, {value: timestamp})
+
+        # Remove events older than 24 hours
+        cutoff = timestamp - 86400
+        await redis.zremrangebyscore(stream_key, "-inf", cutoff)
         await redis.expire(stream_key, 86400)
-
-        # Update aggregated liquidation counters per timeframe window
-        for window, seconds in [
-            ("1m", 60), ("3m", 180), ("5m", 300), ("15m", 900),
-            ("1H", 3600), ("4H", 14400), ("1D", 86400),
-        ]:
-            agg_key = LIQ_KEY.format(symbol=symbol, timeframe=window)
-            side_field = "long_usd" if liq.get("side") == "SELL" else "short_usd"
-            usd_value = liq.get("usd_value", 0)
-
-            await redis.hincrbyfloat(agg_key, side_field, usd_value)
-            await redis.hincrbyfloat(agg_key, "total_count", 1)
-            await redis.expire(agg_key, seconds * 2)
 
     @staticmethod
     async def get_liquidation_agg(symbol: str, timeframe: str) -> Dict:
-        """Get aggregated liquidation data for a timeframe."""
+        """Calculate aggregated liquidation data over the exact timeframe window."""
         redis = await RedisManager.get_client()
-        key = LIQ_KEY.format(symbol=symbol, timeframe=timeframe)
-        data = await redis.hgetall(key)
+        stream_key = LIQ_STREAM_KEY.format(symbol=symbol)
+
+        # Convert timeframe to seconds
+        mapping = {
+            "1m": 60, "3m": 180, "5m": 300, "6m": 360, "12m": 720, "15m": 900, "24m": 1440,
+            "1H": 3600, "2H": 7200, "3H": 10800, "4H": 14400, "1D": 86400,
+        }
+        seconds = mapping.get(timeframe, 3600)
+        
+        now = time.time()
+        cutoff = now - seconds
+
+        # Get events within the timeframe
+        raw_events = await redis.zrangebyscore(stream_key, cutoff, "+inf")
+
+        long_usd = 0.0
+        short_usd = 0.0
+        count = 0
+
+        for raw in raw_events:
+            try:
+                liq = json.loads(raw)
+                usd_val = liq.get("usd_value", 0)
+                if liq.get("side") == "SELL":  # Long position got sold (liquidated)
+                    long_usd += usd_val
+                elif liq.get("side") == "BUY": # Short position got bought (liquidated)
+                    short_usd += usd_val
+                count += 1
+            except Exception:
+                continue
+
         return {
-            "long_usd": float(data.get("long_usd", 0)),
-            "short_usd": float(data.get("short_usd", 0)),
-            "total_count": int(float(data.get("total_count", 0))),
+            "long_usd": long_usd,
+            "short_usd": short_usd,
+            "total_count": count,
         }
 
     @staticmethod

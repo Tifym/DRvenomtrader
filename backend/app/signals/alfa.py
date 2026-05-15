@@ -46,7 +46,7 @@ class AlfaSignal(BaseSignal):
     """ALFA Signal — Fibonacci Retracement golden zone detection."""
 
     SIGNAL_TYPE = "ALFA"
-    TIMEFRAMES = ["1D", "4H", "3H", "2H", "1H", "24m", "12m", "6m", "3m", "1m"]
+    TIMEFRAMES = ["1D", "4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"]
 
     def __init__(self, fib_zone_low: float = GOLDEN_ZONE_LOW, fib_zone_high: float = GOLDEN_ZONE_HIGH):
         self.fib_zone_low = fib_zone_low
