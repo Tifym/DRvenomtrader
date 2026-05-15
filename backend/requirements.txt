@@ -1,0 +1,37 @@
+# ============================================
+# Dr. Venom Trader - Backend Dependencies
+# ============================================
+
+# --- Web Framework ---
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+pydantic==2.11.3
+pydantic-settings==2.9.1
+
+# --- Database ---
+sqlalchemy[asyncio]==2.0.41
+asyncpg==0.30.0
+alembic==1.15.2
+greenlet==3.2.2
+
+# --- Redis ---
+redis[hiredis]==5.3.0
+
+# --- WebSocket & Exchange Connectivity ---
+websockets==15.0.1
+ccxt==4.4.81
+aiohttp==3.12.3
+
+# --- Technical Analysis ---
+numpy==2.2.6
+pandas==2.2.3
+pandas-ta==0.3.14b1
+
+# --- Alerts ---
+python-telegram-bot==22.1
+
+# --- Utilities ---
+python-dotenv==1.1.0
+httpx==0.28.1
+orjson==3.10.18
+structlog==25.4.0

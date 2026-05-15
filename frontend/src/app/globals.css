@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+/* ==============================================
+   Dr. Venom Trader - Global Styles & Design Tokens
+   ============================================== */
+
+@theme {
+  /* --- Color Palette (Dark Mode) --- */
+  --color-bg-primary: #0a0e17;
+  --color-bg-secondary: #111827;
+  --color-bg-card: #1a1f2e;
+  --color-bg-card-hover: #222838;
+  --color-border: #2d3748;
+  --color-border-light: #374151;
+
+  /* --- Signal Colors --- */
+  --color-bull: #00e676;
+  --color-bull-dim: rgba(0, 230, 118, 0.15);
+  --color-bear: #ff1744;
+  --color-bear-dim: rgba(255, 23, 68, 0.15);
+  --color-neutral: #616e87;
+  --color-neutral-dim: rgba(97, 110, 135, 0.15);
+
+  /* --- Accent Colors --- */
+  --color-accent-cyan: #00bcd4;
+  --color-accent-purple: #7c4dff;
+  --color-accent-amber: #ffc107;
+  --color-accent-blue: #2979ff;
+
+  /* --- Text --- */
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+
+  /* --- Typography --- */
+  --font-sans: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* --- Spacing --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* --- Shadows --- */
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-glow-bull: 0 0 20px rgba(0, 230, 118, 0.2);
+  --shadow-glow-bear: 0 0 20px rgba(255, 23, 68, 0.2);
+}
+
+/* --- Base Styles --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-light);
+}
+
+/* --- Signal Box Animations --- */
+@keyframes pulse-bull {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 230, 118, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(0, 230, 118, 0.6); }
+}
+@keyframes pulse-bear {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 23, 68, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(255, 23, 68, 0.6); }
+}
+
+.signal-bull {
+  background-color: var(--color-bull-dim);
+  border: 1px solid var(--color-bull);
+  animation: pulse-bull 3s ease-in-out infinite;
+}
+.signal-bear {
+  background-color: var(--color-bear-dim);
+  border: 1px solid var(--color-bear);
+  animation: pulse-bear 3s ease-in-out infinite;
+}
+.signal-neutral {
+  background-color: var(--color-neutral-dim);
+  border: 1px solid var(--color-neutral);
+}

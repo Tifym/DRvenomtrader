@@ -1,0 +1,8 @@
+{
+  "name": "Dr. Venom Trader",
+  "short_name": "DrVenom",
+  "description": "Real-Time Crypto Trading Signals Dashboard",
+  "theme_color": "#0a0e17",
+  "background_color": "#0a0e17",
+  "display": "standalone"
+}
