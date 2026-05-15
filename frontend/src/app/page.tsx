@@ -17,11 +17,11 @@ export default function Dashboard() {
 
   // Overall confluence summary
   const totalBull = Object.values(signals).reduce(
-    (sum, tfs) => sum + Object.values(tfs).filter((s) => s?.direction === "LONG").length,
+    (sum, tfs) => sum + Object.values(tfs).filter((s: any) => s?.direction === "LONG").length,
     0
   );
   const totalBear = Object.values(signals).reduce(
-    (sum, tfs) => sum + Object.values(tfs).filter((s) => s?.direction === "SHORT").length,
+    (sum, tfs) => sum + Object.values(tfs).filter((s: any) => s?.direction === "SHORT").length,
     0
   );
 
