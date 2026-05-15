@@ -10,7 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # Install system dependencies (curl for healthcheck, build-essential for C extensions)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl build-essential && \
+    apt-get install -y --no-install-recommends curl build-essential git && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
