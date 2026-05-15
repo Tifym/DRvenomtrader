@@ -15,8 +15,9 @@ export default function ConfluencePanel({ signals, symbol }: ConfluencePanelProp
   const allActive: Array<{ type: string; tf: string; dir: string; strength: number }> = [];
   for (const [sigType, tfs] of Object.entries(signals)) {
     for (const [tf, sig] of Object.entries(tfs)) {
-      if (sig && sig.direction !== "NEUTRAL") {
-        allActive.push({ type: sigType, tf, dir: sig.direction, strength: sig.strength ?? 0 });
+      const s = sig as any;
+      if (s && s.direction && s.direction !== "NEUTRAL") {
+        allActive.push({ type: sigType, tf, dir: s.direction, strength: s.strength ?? 0 });
       }
     }
   }

@@ -26,7 +26,7 @@ aiohttp==3.12.3
 # --- Technical Analysis ---
 numpy==2.2.6
 pandas==2.2.3
-pandas-ta>=0.3.14b0
+pandas-ta>=0.4.0
 
 # --- Alerts ---
 python-telegram-bot==22.1
