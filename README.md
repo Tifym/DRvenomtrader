@@ -15,7 +15,16 @@
 | **ALFA** | Fibonacci Retracement | Auto Fib zones (0.618–0.786), multi-timeframe, trend-aware |
 | **BETA** | Divergences | Regular + Hidden divergences on RSI + MACD with pivot detection |
 | **DELTA** | Bollinger Bands | Price vs upper/lower band touches with squeeze detection |
-| **GAMMA** | Liquidations | Longs vs Shorts liquidated in $M via CoinGlass + exchange streams |
+| **GAMMA** | Liquidations | Longs vs Shorts liquidated in $M via Binance/Bybit streams |
+
+---
+
+## 🎨 Frontend Features
+
+- **Real-Time Charting**: TradingView Lightweight Charts integration with custom overlays.
+- **Audio/Visual Alerts**: Browser-level push notifications and audio cues on high-confluence events (3+ signals).
+- **Multi-Exchange Support**: Toggle seamlessly between **Binance Futures** and **Bybit USDT Perpetuals** data streams.
+- **Signal Overlays**: Visual markers directly on the chart for ALFA (Fib), BETA (Divs), DELTA (BB), and GAMMA (Liq).
 
 ---
 
@@ -103,7 +112,8 @@ drvenomtrader/
 │       │   ├── layout.tsx          # Root layout
 │       │   └── globals.css         # Design system
 │       ├── components/
-│       │   ├── Header.tsx          # Nav + price + status
+│       │   ├── Header.tsx          # Nav + price + status + exchange toggle
+│       │   ├── SignalChart.tsx     # TradingView Lightweight Chart
 │       │   ├── SignalCard.tsx      # Signal type card
 │       │   ├── SignalBox.tsx       # Timeframe box + tooltip
 │       │   ├── ConfluencePanel.tsx # Confluence detector

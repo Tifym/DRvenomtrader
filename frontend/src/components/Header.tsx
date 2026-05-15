@@ -9,9 +9,11 @@ interface HeaderProps {
   symbol: string;
   symbols: string[];
   onSymbolChange: (s: string) => void;
+  exchange: string;
+  onExchangeChange: (e: string) => void;
 }
 
-export default function Header({ price, connected, symbol, symbols, onSymbolChange }: HeaderProps) {
+export default function Header({ price, connected, symbol, symbols, onSymbolChange, exchange, onExchangeChange }: HeaderProps) {
   const [time, setTime] = useState(new Date());
   useEffect(() => {
     const t = setInterval(() => setTime(new Date()), 1000);
@@ -72,8 +74,31 @@ export default function Header({ price, connected, symbol, symbols, onSymbolChan
         </div>
       </div>
 
-      {/* Center: Symbol selector + Price */}
+      {/* Center: Symbol selector + Price + Exchange */}
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {/* Exchange Toggle */}
+        <select
+          value={exchange}
+          onChange={(e) => onExchangeChange(e.target.value)}
+          style={{
+            background: "rgba(17, 24, 39, 0.8)",
+            border: "1px solid rgba(45, 55, 72, 0.5)",
+            borderRadius: "10px",
+            color: "#e2e8f0",
+            padding: "8px 14px",
+            fontSize: "14px",
+            fontWeight: 700,
+            fontFamily: "'JetBrains Mono', monospace",
+            cursor: "pointer",
+            outline: "none",
+          }}
+        >
+          <option value="Both">Binance + Bybit</option>
+          <option value="Binance">Binance</option>
+          <option value="Bybit">Bybit</option>
+        </select>
+
+        {/* Symbol Toggle */}
         <select
           value={symbol}
           onChange={(e) => onSymbolChange(e.target.value)}
