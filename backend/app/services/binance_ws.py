@@ -95,7 +95,9 @@ class BinanceWSConnector:
 
     async def _listen(self, ws) -> None:
         """Process incoming WebSocket messages."""
+        logger.info("Binance WS listening loop started")
         async for raw_msg in ws:
+            logger.info("Binance WS raw message received", msg_len=len(raw_msg))
             try:
                 msg = json.loads(raw_msg)
                 stream = msg.get("stream", "")

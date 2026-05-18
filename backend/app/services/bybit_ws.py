@@ -99,7 +99,9 @@ class BybitWSConnector:
 
     async def _listen(self, ws) -> None:
         """Process incoming messages."""
+        logger.info("Bybit WS listening loop started")
         async for raw_msg in ws:
+            logger.info("Bybit WS raw message received", msg_len=len(raw_msg))
             try:
                 msg = json.loads(raw_msg)
                 topic = msg.get("topic", "")
