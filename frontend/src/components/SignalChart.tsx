@@ -241,7 +241,7 @@ export default function SignalChart({ symbol, price, signals }: SignalChartProps
       // 3. Draw Fibonacci retracement lines dynamically from ALFA
       const alfa = signals.ALFA?.[timeframe];
       if (alfa?.details?.fib_levels) {
-        const levels = alfa.details.fib_levels;
+        const levels = alfa.details.fib_levels as any;
         
         // Remove old lines
         fibLinesRef.current.forEach((line) => {
