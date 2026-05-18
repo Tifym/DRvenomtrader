@@ -122,9 +122,20 @@ class BinanceWSConnector:
     async def _handle_kline(self, data: dict) -> None:
         """Process kline/candle data."""
         k = data.get("k", {})
+        raw_interval = k.get("i", "")
+        
+        # Normalize to standard timeframes (e.g. 1h -> 1H)
+        tf_map = {
+            "1d": "1D", "4h": "4H", "2h": "2H", "1h": "1H",
+            "30m": "30m", "15m": "15m", "5m": "5m", "3m": "3m", "1m": "1m"
+        }
+        standard_tf = tf_map.get(raw_interval, raw_interval)
+
+        logger.info("Binance kline received", symbol=data.get("s", ""), timeframe=standard_tf, is_closed=k.get("x", False))
+
         candle = {
             "symbol": data.get("s", ""),
-            "timeframe": k.get("i", ""),
+            "timeframe": standard_tf,
             "open_time": k.get("t", 0),
             "close_time": k.get("T", 0),
             "open": float(k.get("o", 0)),
@@ -133,7 +144,7 @@ class BinanceWSConnector:
             "close": float(k.get("c", 0)),
             "volume": float(k.get("v", 0)),
             "is_closed": k.get("x", False),
-            "timestamp": time.time(),
+            "timestamp": time.time() * 1000,
             "source": "binance",
         }
         if self.on_candle:
@@ -141,6 +152,7 @@ class BinanceWSConnector:
 
     async def _handle_mark_price(self, data: dict) -> None:
         """Process mark price updates."""
+        logger.info("Binance price received", symbol=data.get("s", ""), price=float(data.get("p", 0)))
         price_data = {
             "symbol": data.get("s", ""),
             "price": float(data.get("p", 0)),
@@ -162,7 +174,7 @@ class BinanceWSConnector:
             "quantity": float(o.get("q", 0)),
             "usd_value": float(o.get("p", 0)) * float(o.get("q", 0)),
             "trade_time": o.get("T", 0),
-            "timestamp": time.time(),
+            "timestamp": time.time() * 1000,
             "source": "binance",
         }
         if self.on_liquidation:

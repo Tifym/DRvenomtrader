@@ -119,17 +119,29 @@ class BybitWSConnector:
         """Process kline data from Bybit."""
         if not isinstance(data_list, list):
             data_list = [data_list]
+        
+        bybit_tf = topic.split(".")[1]
+        tf_map = {
+            "1": "1m", "3": "3m", "5": "5m", "15": "15m", "30": "30m",
+            "60": "1H", "120": "2H", "240": "4H", "D": "1D"
+        }
+        standard_tf = tf_map.get(bybit_tf, bybit_tf)
+
         for d in data_list:
+            symbol = d.get("symbol", topic.split(".")[-1])
+            logger.info("Bybit kline received", symbol=symbol, timeframe=standard_tf, is_closed=d.get("confirm", False))
             candle = {
-                "symbol": d.get("symbol", topic.split(".")[-1]),
-                "timeframe": topic.split(".")[1],
+                "symbol": symbol,
+                "timeframe": standard_tf,
+                "open_time": int(d.get("start", 0)) if d.get("start") else int(time.time() * 1000),
+                "close_time": int(d.get("end", 0)) if d.get("end") else int(time.time() * 1000),
                 "open": float(d.get("open", 0)),
                 "high": float(d.get("high", 0)),
                 "low": float(d.get("low", 0)),
                 "close": float(d.get("close", 0)),
                 "volume": float(d.get("volume", 0)),
                 "is_closed": d.get("confirm", False),
-                "timestamp": time.time(),
+                "timestamp": time.time() * 1000,
                 "source": "bybit",
             }
             if self.on_candle:
@@ -137,11 +149,14 @@ class BybitWSConnector:
 
     async def _handle_ticker(self, data) -> None:
         """Process ticker price data."""
+        symbol = data.get("symbol", "")
+        price = float(data.get("lastPrice", 0))
+        logger.info("Bybit price received", symbol=symbol, price=price)
         price_data = {
-            "symbol": data.get("symbol", ""),
-            "price": float(data.get("lastPrice", 0)),
+            "symbol": symbol,
+            "price": price,
             "funding_rate": float(data.get("fundingRate", 0)),
-            "timestamp": time.time(),
+            "timestamp": time.time() * 1000,
             "source": "bybit",
         }
         if self.on_price:
@@ -155,7 +170,7 @@ class BybitWSConnector:
             "price": float(data.get("price", 0)),
             "quantity": float(data.get("size", 0)),
             "usd_value": float(data.get("price", 0)) * float(data.get("size", 0)),
-            "timestamp": time.time(),
+            "timestamp": time.time() * 1000,
             "source": "bybit",
         }
         if self.on_liquidation:
