@@ -105,7 +105,7 @@ export default function SignalChart({ symbol, price, signals }: SignalChartProps
     // Bollinger Bands Series
     const bbUpper = chart.addLineSeries({
       color: "rgba(245, 158, 11, 0.6)", // Gold dashed
-      lineWidth: 1.5,
+      lineWidth: 1,
       lineStyle: 1, // Dashed
       crosshairMarkerVisible: false,
     });
@@ -116,8 +116,8 @@ export default function SignalChart({ symbol, price, signals }: SignalChartProps
     });
     const bbLower = chart.addLineSeries({
       color: "rgba(245, 158, 11, 0.6)",
-      lineWidth: 1.5,
-      lineStyle: 1,
+      lineWidth: 1,
+      lineStyle: 1, // Dashed
       crosshairMarkerVisible: false,
     });
 
