@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     coinglass_api_key: str = Field(default="", alias="COINGLASS_API_KEY")
 
     # --- Alerts ---
-    telegram_bot_token: str = Field(default="", alias="TELEGRAM_BOT_TOKEN")
+    telegram_bot_token: str = Field(default="8751848755:AAGiQyVIrMTGbvsBkMUDm8cnsiEq-_uDZEg", alias="TELEGRAM_BOT_TOKEN")
     telegram_chat_id: str = Field(default="", alias="TELEGRAM_CHAT_ID")
     discord_webhook_url: str = Field(default="", alias="DISCORD_WEBHOOK_URL")
 

@@ -14,8 +14,31 @@ TELEGRAM_API = "https://api.telegram.org/bot{token}/sendMessage"
 
 async def send_telegram_alert(message: str, parse_mode: str = "HTML") -> bool:
     """Send an alert message to the configured Telegram chat."""
-    if not settings.telegram_bot_token or not settings.telegram_chat_id:
-        logger.debug("Telegram not configured, skipping alert")
+    if not settings.telegram_bot_token:
+        logger.debug("Telegram bot token not configured, skipping alert")
+        return False
+
+    if not settings.telegram_chat_id:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                updates_url = f"https://api.telegram.org/bot{settings.telegram_bot_token}/getUpdates"
+                resp = await client.get(updates_url)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    results = data.get("result", [])
+                    if results:
+                        for update in reversed(results):
+                            message_obj = update.get("message") or update.get("edited_message") or update.get("channel_post")
+                            if message_obj and "chat" in message_obj:
+                                chat_id = str(message_obj["chat"]["id"])
+                                settings.telegram_chat_id = chat_id
+                                logger.info("Dynamically retrieved Telegram chat ID from getUpdates", chat_id=chat_id)
+                                break
+        except Exception as ex:
+            logger.warning("Failed to auto-retrieve Telegram chat ID", error=str(ex))
+
+    if not settings.telegram_chat_id:
+        logger.debug("Telegram chat ID not configured or found, skipping alert")
         return False
 
     url = TELEGRAM_API.format(token=settings.telegram_bot_token)
