@@ -2,6 +2,7 @@
 Dr. Venom Trader - GAMMA Signal: Liquidations
 Bigger Longs Liquidated → Stronger SELL (Red)
 Bigger Shorts Liquidated → Stronger BUY (Green)
+Upgraded with dynamic settings.
 """
 
 import structlog
@@ -11,11 +12,16 @@ from app.services.candle_cache import CandleCache
 
 logger = structlog.get_logger()
 
-
 class GammaSignal(BaseSignal):
     """GAMMA Signal — Liquidation imbalance detection."""
     SIGNAL_TYPE = "GAMMA"
     TIMEFRAMES = ["1D", "4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"]
+
+    def __init__(self):
+        self.settings = {}
+
+    def update_settings(self, new_settings: dict):
+        self.settings = new_settings
 
     async def compute(self, symbol: str, timeframe: str, candles: List[dict] = None) -> Optional[SignalResult]:
         """Compute GAMMA from aggregated liquidation data in Redis."""
@@ -23,8 +29,15 @@ class GammaSignal(BaseSignal):
         long_usd = liq.get("long_usd", 0)
         short_usd = liq.get("short_usd", 0)
         total = long_usd + short_usd
-
-        if total < 1000:  # Less than $1K total — not enough data
+        
+        tf_settings = self.settings.get(timeframe, {})
+        global_settings = self.settings.get("GLOBAL", {})
+        
+        # Configuration for liquidation thresholds
+        min_total_volume = tf_settings.get("min_total_volume", global_settings.get("min_total_volume", 1000))
+        strong_threshold_m = tf_settings.get("strong_threshold_m", global_settings.get("strong_threshold_m", 10.0))
+        
+        if total < min_total_volume:
             return SignalResult(
                 signal_type=self.SIGNAL_TYPE, symbol=symbol, timeframe=timeframe,
                 direction=SignalDirection.NEUTRAL, strength=0.0, label="LOW VOL",
@@ -37,12 +50,13 @@ class GammaSignal(BaseSignal):
         if long_usd > short_usd:
             ratio = long_usd / max(short_usd, 1)
             direction = SignalDirection.SHORT
-            strength = min(ratio / 5.0, 1.0)
+            # Strength based on threshold
+            strength = min(long_m / strong_threshold_m, 1.0)
             label = f"L:{long_m:.1f}M"
         elif short_usd > long_usd:
             ratio = short_usd / max(long_usd, 1)
             direction = SignalDirection.LONG
-            strength = min(ratio / 5.0, 1.0)
+            strength = min(short_m / strong_threshold_m, 1.0)
             label = f"S:{short_m:.1f}M"
         else:
             direction = SignalDirection.NEUTRAL

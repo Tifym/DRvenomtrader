@@ -36,9 +36,10 @@ class SignalEngine:
         self._running = False
 
     async def start(self) -> None:
-        """Start the signal computation loop."""
+        """Start the signal computation loop and pubsub listener."""
         self._running = True
         self._task = asyncio.create_task(self._run_loop(), name="signal_engine")
+        self._pubsub_task = asyncio.create_task(self._listen_for_settings(), name="settings_listener")
         logger.info("Signal engine started")
 
     async def stop(self) -> None:
@@ -46,11 +47,50 @@ class SignalEngine:
         self._running = False
         if self._task:
             self._task.cancel()
-            try:
-                await self._task
-            except asyncio.CancelledError:
-                pass
+        if hasattr(self, '_pubsub_task') and self._pubsub_task:
+            self._pubsub_task.cancel()
         logger.info("Signal engine stopped")
+
+    async def _listen_for_settings(self) -> None:
+        """Listen for settings updates via Redis Pub/Sub."""
+        from app.redis_client import RedisManager
+        import json
+        redis = await RedisManager.get_client()
+        pubsub = redis.pubsub()
+        await pubsub.subscribe("settings:reload")
+        try:
+            async for message in pubsub.listen():
+                if message["type"] == "message":
+                    data = json.loads(message["data"])
+                    logger.info("Hot-reloading settings for signals", updated=data.get("signals_updated"))
+                    await self.reload_settings_from_db()
+        except asyncio.CancelledError:
+            await pubsub.unsubscribe("settings:reload")
+
+    async def reload_settings_from_db(self) -> None:
+        """Fetch all settings from DB and push to modules."""
+        from app.database import async_session
+        from sqlalchemy import select
+        from app.models.settings import SignalSetting
+        
+        try:
+            async with async_session() as db:
+                result = await db.execute(select(SignalSetting))
+                settings_list = result.scalars().all()
+                
+            settings_dict = {"ALFA": {}, "BETA": {}, "DELTA": {}, "GAMMA": {}}
+            for s in settings_list:
+                if s.signal_type in settings_dict:
+                    settings_dict[s.signal_type][s.timeframe] = s.parameters
+                    
+            if hasattr(self.alfa, "update_settings"): self.alfa.update_settings(settings_dict["ALFA"])
+            if hasattr(self.beta, "update_settings"): self.beta.update_settings(settings_dict["BETA"])
+            if hasattr(self.delta, "update_settings"): self.delta.update_settings(settings_dict["DELTA"])
+            if hasattr(self.gamma, "update_settings"): self.gamma.update_settings(settings_dict["GAMMA"])
+            
+            logger.info("Settings reloaded successfully from DB")
+        except Exception as e:
+            logger.error("Failed to reload settings from DB", error=str(e))
 
     async def _run_loop(self) -> None:
         """Main computation loop."""

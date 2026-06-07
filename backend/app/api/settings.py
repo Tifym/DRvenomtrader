@@ -4,48 +4,68 @@ Endpoints for reading/updating configuration at runtime.
 """
 
 import json
-from fastapi import APIRouter
-from app.config import settings
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from pydantic import BaseModel
+from typing import Dict, Any, List
+
+from app.database import get_db
+from app.models.settings import SignalSetting
 from app.redis_client import RedisManager
 
 settings_router = APIRouter(prefix="/settings", tags=["Settings"])
 
-SETTINGS_KEY = "app:settings"
-
+class SignalSettingUpdate(BaseModel):
+    signal_type: str
+    timeframe: str
+    parameters: Dict[str, Any]
+    is_active: bool = True
 
 @settings_router.get("/")
-async def get_settings():
-    """Get current application settings."""
-    redis = await RedisManager.get_client()
-    raw = await redis.get(SETTINGS_KEY)
-    custom = json.loads(raw) if raw else {}
+async def get_all_settings(db: AsyncSession = Depends(get_db)):
+    """Get all settings from DB."""
+    result = await db.execute(select(SignalSetting))
+    settings_list = result.scalars().all()
     return {
-        "symbols": custom.get("symbols", settings.default_symbols),
-        "fib_zone_low": custom.get("fib_zone_low", 0.618),
-        "fib_zone_high": custom.get("fib_zone_high", 0.786),
-        "bb_period": custom.get("bb_period", 20),
-        "bb_std_dev": custom.get("bb_std_dev", 2.0),
-        "rsi_period": custom.get("rsi_period", 14),
-        "confluence_threshold": custom.get("confluence_threshold", 3),
-        "alert_telegram": bool(settings.telegram_bot_token),
-        "alert_discord": bool(settings.discord_webhook_url),
-        "coinglass_enabled": bool(settings.coinglass_api_key),
+        "settings": [
+            {
+                "signal_type": s.signal_type,
+                "timeframe": s.timeframe,
+                "parameters": s.parameters,
+                "is_active": s.is_active,
+            }
+            for s in settings_list
+        ]
     }
 
-
 @settings_router.post("/")
-async def update_settings(body: dict):
-    """Update application settings (persisted in Redis)."""
+async def update_settings(body: List[SignalSettingUpdate], db: AsyncSession = Depends(get_db)):
+    """Update specific signal settings and trigger hot reload."""
+    updated = []
+    for item in body:
+        result = await db.execute(
+            select(SignalSetting).where(
+                SignalSetting.signal_type == item.signal_type,
+                SignalSetting.timeframe == item.timeframe
+            )
+        )
+        setting = result.scalars().first()
+        if not setting:
+            setting = SignalSetting(
+                signal_type=item.signal_type,
+                timeframe=item.timeframe
+            )
+            db.add(setting)
+        
+        setting.parameters = item.parameters
+        setting.is_active = item.is_active
+        updated.append(item.signal_type)
+    
+    await db.commit()
+    
+    # Trigger hot reload via Redis Pub/Sub
     redis = await RedisManager.get_client()
-    # Merge with existing
-    raw = await redis.get(SETTINGS_KEY)
-    current = json.loads(raw) if raw else {}
-    allowed_keys = [
-        "symbols", "fib_zone_low", "fib_zone_high",
-        "bb_period", "bb_std_dev", "rsi_period", "confluence_threshold",
-    ]
-    for k in allowed_keys:
-        if k in body:
-            current[k] = body[k]
-    await redis.set(SETTINGS_KEY, json.dumps(current))
-    return {"status": "updated", "settings": current}
+    await redis.publish("settings:reload", json.dumps({"signals_updated": list(set(updated))}))
+    
+    return {"status": "updated"}
