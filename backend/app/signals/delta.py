@@ -7,7 +7,7 @@ Upgraded with pandas-ta and dynamic settings.
 
 import numpy as np
 import pandas as pd
-import pandas_ta as ta
+import pandas_ta_classic as ta
 import structlog
 from typing import List, Optional
 from app.signals.base import BaseSignal, SignalResult, SignalDirection

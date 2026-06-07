@@ -7,7 +7,7 @@ Upgraded with scipy peak detection and pandas-ta EMA filter.
 import structlog
 import numpy as np
 import pandas as pd
-import pandas_ta as ta
+import pandas_ta_classic as ta
 from scipy.signal import find_peaks
 from typing import Dict, List, Optional
 
