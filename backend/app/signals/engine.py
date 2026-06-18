@@ -1,7 +1,6 @@
 """
-Dr. Venom Trader - Signal Engine
-Orchestrates all four signal modules. Runs on a loop, computing signals
-from cached candle data and storing results for API/WS delivery.
+Dr. Venom Trader - Signal Engine v2
+Orchestrates all four upgraded signal modules.
 """
 
 import asyncio
@@ -19,9 +18,10 @@ from app.ws.manager import ws_manager
 
 logger = structlog.get_logger()
 
-# All supported timeframes across signals (Binance native)
+# Upgraded to 300 to support longer-term zigzag and squeeze lookbacks
+CANDLE_COUNT = 300
 CANDLE_TIMEFRAMES = ["1D", "4H", "2H", "1H", "30m", "15m", "5m", "3m", "1m"]
-COMPUTE_INTERVAL = 5  # seconds between signal computation cycles
+COMPUTE_INTERVAL = 5  
 
 
 class SignalEngine:
@@ -36,14 +36,12 @@ class SignalEngine:
         self._running = False
 
     async def start(self) -> None:
-        """Start the signal computation loop and pubsub listener."""
         self._running = True
         self._task = asyncio.create_task(self._run_loop(), name="signal_engine")
         self._pubsub_task = asyncio.create_task(self._listen_for_settings(), name="settings_listener")
-        logger.info("Signal engine started")
+        logger.info("Signal engine v2 started")
 
     async def stop(self) -> None:
-        """Stop the signal computation loop."""
         self._running = False
         if self._task:
             self._task.cancel()
@@ -52,7 +50,6 @@ class SignalEngine:
         logger.info("Signal engine stopped")
 
     async def _listen_for_settings(self) -> None:
-        """Listen for settings updates via Redis Pub/Sub."""
         from app.redis_client import RedisManager
         import json
         redis = await RedisManager.get_client()
@@ -68,7 +65,6 @@ class SignalEngine:
             await pubsub.unsubscribe("settings:reload")
 
     async def reload_settings_from_db(self) -> None:
-        """Fetch all settings from DB and push to modules."""
         from app.database import async_session
         from sqlalchemy import select
         from app.models.settings import SignalSetting
@@ -93,7 +89,6 @@ class SignalEngine:
             logger.error("Failed to reload settings from DB", error=str(e))
 
     async def _run_loop(self) -> None:
-        """Main computation loop."""
         while self._running:
             try:
                 for symbol in settings.default_symbols:
@@ -103,13 +98,10 @@ class SignalEngine:
             await asyncio.sleep(COMPUTE_INTERVAL)
 
     async def _compute_for_symbol(self, symbol: str) -> None:
-        """Compute all signals for a single symbol."""
-        # Fetch candles for all timeframes
         candles_by_tf: Dict[str, List[dict]] = {}
         for tf in CANDLE_TIMEFRAMES:
-            candles_by_tf[tf] = await CandleCache.get_candles(symbol, tf, count=150)
+            candles_by_tf[tf] = await CandleCache.get_candles(symbol, tf, count=CANDLE_COUNT)
 
-        # Compute each signal module
         for module in [self.alfa, self.beta, self.delta, self.gamma]:
             try:
                 results = await module.compute_all_timeframes(symbol, candles_by_tf)
@@ -120,16 +112,14 @@ class SignalEngine:
                         timeframe=result.timeframe,
                         signal_data=result.to_dict(),
                     )
-                    # Broadcast to WS clients
                     await ws_manager.broadcast_signal(symbol, result.to_dict())
             except Exception as e:
                 logger.error("Signal compute error", module=module.SIGNAL_TYPE, error=str(e))
 
     async def compute_now(self, symbol: str) -> Dict:
-        """On-demand computation for a symbol. Returns all results."""
         candles_by_tf = {}
         for tf in CANDLE_TIMEFRAMES:
-            candles_by_tf[tf] = await CandleCache.get_candles(symbol, tf, count=150)
+            candles_by_tf[tf] = await CandleCache.get_candles(symbol, tf, count=CANDLE_COUNT)
 
         all_results = {}
         for module in [self.alfa, self.beta, self.delta, self.gamma]:
@@ -137,6 +127,4 @@ class SignalEngine:
             all_results[module.SIGNAL_TYPE] = {r.timeframe: r.to_dict() for r in results}
         return all_results
 
-
-# Global singleton
 signal_engine = SignalEngine()
