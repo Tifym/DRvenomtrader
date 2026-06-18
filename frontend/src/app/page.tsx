@@ -8,6 +8,7 @@ import SignalCard from "@/components/SignalCard";
 import ConfluencePanel from "@/components/ConfluencePanel";
 import AlertFeed from "@/components/AlertFeed";
 import SignalChart from "@/components/SignalChart";
+import SignalBiasPanel from "@/components/SignalBiasPanel";
 
 const SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "DOGEUSDT"];
 const SIGNAL_TYPES: SignalType[] = ["ALFA", "BETA", "DELTA", "GAMMA"];
@@ -103,59 +104,9 @@ export default function Dashboard() {
           onExchangeChange={setExchange}
         />
 
-        {/* Overall bias bar */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            marginBottom: "20px",
-            padding: "12px 20px",
-            background: "rgba(26, 31, 46, 0.5)",
-            borderRadius: "12px",
-            border: "1px solid rgba(45, 55, 72, 0.3)",
-          }}
-        >
-          <span style={{ fontSize: "12px", color: "#64748b", fontWeight: 600 }}>BIAS</span>
-          <div
-            style={{
-              flex: 1,
-              height: "6px",
-              background: "rgba(97,110,135,0.2)",
-              borderRadius: "3px",
-              overflow: "hidden",
-              display: "flex",
-            }}
-          >
-            {(totalBull + totalBear) > 0 && (
-              <>
-                <div
-                  style={{
-                    width: `${(totalBull / (totalBull + totalBear)) * 100}%`,
-                    background: "linear-gradient(90deg, #00e676, #00c853)",
-                    transition: "width 0.5s ease",
-                  }}
-                />
-                <div
-                  style={{
-                    width: `${(totalBear / (totalBull + totalBear)) * 100}%`,
-                    background: "linear-gradient(90deg, #ff1744, #d50000)",
-                    transition: "width 0.5s ease",
-                  }}
-                />
-              </>
-            )}
-          </div>
-          <span
-            style={{
-              fontSize: "11px",
-              fontFamily: "'JetBrains Mono', monospace",
-              color: totalBull > totalBear ? "#00e676" : totalBear > totalBull ? "#ff1744" : "#64748b",
-              fontWeight: 700,
-            }}
-          >
-            {totalBull}L / {totalBear}S
-          </span>
+        {/* Overall premium bias panel */}
+        <div style={{ marginBottom: "20px" }}>
+          <SignalBiasPanel totalBull={totalBull} totalBear={totalBear} />
         </div>
 
         {/* Main Chart */}

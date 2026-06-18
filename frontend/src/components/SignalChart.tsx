@@ -70,36 +70,53 @@ export default function SignalChart({ symbol, price, signals }: SignalChartProps
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    // Create chart
+    // Create chart with premium TradingView Dark style
     const chart = createChart(chartContainerRef.current, {
       layout: {
-        background: { color: "#0b0f19" },
+        background: { color: "#08080c" },
         textColor: "#94a3b8",
         fontSize: 11,
+        fontFamily: "'Inter', sans-serif",
       },
       grid: {
-        vertLines: { color: "rgba(45, 55, 72, 0.15)" },
-        horzLines: { color: "rgba(45, 55, 72, 0.15)" },
+        vertLines: { color: "rgba(255, 255, 255, 0.03)" },
+        horzLines: { color: "rgba(255, 255, 255, 0.03)" },
       },
-      crosshair: { mode: CrosshairMode.Normal },
+      crosshair: {
+        mode: CrosshairMode.Normal,
+        vertLine: {
+          color: "rgba(148, 163, 184, 0.4)",
+          width: 1,
+          style: 2, // Dashed
+          labelBackgroundColor: "#1e293b",
+        },
+        horzLine: {
+          color: "rgba(148, 163, 184, 0.4)",
+          width: 1,
+          style: 2, // Dashed
+          labelBackgroundColor: "#1e293b",
+        },
+      },
       rightPriceScale: { 
-        borderColor: "rgba(45, 55, 72, 0.3)",
+        borderColor: "rgba(255, 255, 255, 0.07)",
         autoScale: true,
       },
       timeScale: { 
-        borderColor: "rgba(45, 55, 72, 0.3)", 
+        borderColor: "rgba(255, 255, 255, 0.07)", 
         timeVisible: true,
         secondsVisible: false,
       },
     });
 
-    // Main Candlestick Series
+    // Main Candlestick Series (TradingView colors and borders)
     const candleSeries = chart.addCandlestickSeries({
-      upColor: "#10b981",
-      downColor: "#ef4444",
-      borderVisible: false,
-      wickUpColor: "#10b981",
-      wickDownColor: "#ef4444",
+      upColor: "#26a69a",
+      downColor: "#ef5350",
+      borderUpColor: "#26a69a",
+      borderDownColor: "#ef5350",
+      wickUpColor: "#26a69a",
+      wickDownColor: "#ef5350",
+      borderVisible: true,
     });
 
     // Bollinger Bands Series
@@ -382,10 +399,10 @@ export default function SignalChart({ symbol, price, signals }: SignalChartProps
         </div>
       </div>
 
-      <div style={{ position: "relative", height: "550px", width: "100%", borderRadius: "16px", overflow: "hidden", border: "1px solid rgba(45, 55, 72, 0.25)", background: "#0b0f19" }}>
+      <div style={{ position: "relative", height: "550px", width: "100%", borderRadius: "16px", overflow: "hidden", border: "1px solid rgba(255, 255, 255, 0.08)", background: "#08080c" }}>
         {loading && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", justifyContent: "center", zIndex: 10, background: "rgba(11, 15, 25, 0.95)", color: "#10b981" }}>
-            <div style={{ width: "30px", height: "30px", borderRadius: "50%", border: "3px solid rgba(16, 185, 129, 0.2)", borderTopColor: "#10b981", animation: "spin 1s linear infinite" }} />
+          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", justifyContent: "center", zIndex: 10, background: "rgba(8, 8, 12, 0.95)", color: "#26a69a" }}>
+            <div style={{ width: "30px", height: "30px", borderRadius: "50%", border: "3px solid rgba(38, 166, 154, 0.2)", borderTopColor: "#26a69a", animation: "spin 1s linear infinite" }} />
             <span style={{ fontSize: "13px", fontWeight: 600 }}>Syncing Historical Telemetry...</span>
             <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
           </div>
