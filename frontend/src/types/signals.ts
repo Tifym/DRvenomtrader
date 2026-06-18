@@ -11,7 +11,7 @@ export interface SignalData {
   timeframe: string;
   direction: SignalDirection;
   strength: number;
-  details: Record<string, unknown>;
+  details: Record<string, any>;
   label: string;
 }
 

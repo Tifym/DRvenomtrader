@@ -255,11 +255,9 @@ export default function SignalChart({ symbol, price, signals }: SignalChartProps
         bbLowerSeriesRef.current.setData(bbData.lower);
       }
 
-      // 3. Draw Fibonacci retracement lines dynamically from ALFA
+      // 3. Draw Fibonacci retracement zones from ALFA
       const alfa = signals.ALFA?.[timeframe];
-      if (alfa?.details?.fib_levels) {
-        const levels = alfa.details.fib_levels as any;
-        
+      if (alfa?.details) {
         // Remove old lines
         fibLinesRef.current.forEach((line) => {
           try {
@@ -268,30 +266,31 @@ export default function SignalChart({ symbol, price, signals }: SignalChartProps
         });
         fibLinesRef.current = [];
 
-        // Add 0.618 zone line (emerald/green)
-        if (levels["0.618"]) {
-          const line618 = candleSeriesRef.current.createPriceLine({
-            price: Number(levels["0.618"]),
-            color: "#10b981",
+        const cluster_top = Number(alfa.details.cluster_top);
+        const cluster_bottom = Number(alfa.details.cluster_bottom);
+        
+        if (cluster_top && cluster_bottom) {
+          // Add Cluster Top line
+          const lineTop = candleSeriesRef.current.createPriceLine({
+            price: cluster_top,
+            color: "#10b981", // Greenish
             lineWidth: 2,
             lineStyle: 0, // Solid
             axisLabelVisible: true,
-            title: "FIB 0.618 ZONE",
+            title: "FIB ZONE TOP",
           });
-          fibLinesRef.current.push(line618);
-        }
+          fibLinesRef.current.push(lineTop);
 
-        // Add 0.786 zone line (crimson/red)
-        if (levels["0.786"]) {
-          const line786 = candleSeriesRef.current.createPriceLine({
-            price: Number(levels["0.786"]),
-            color: "#ef4444",
+          // Add Cluster Bottom line
+          const lineBot = candleSeriesRef.current.createPriceLine({
+            price: cluster_bottom,
+            color: "#ef4444", // Reddish
             lineWidth: 2,
             lineStyle: 0, // Solid
             axisLabelVisible: true,
-            title: "FIB 0.786 STOP",
+            title: "FIB ZONE BOT",
           });
-          fibLinesRef.current.push(line786);
+          fibLinesRef.current.push(lineBot);
         }
       }
 
@@ -315,7 +314,8 @@ export default function SignalChart({ symbol, price, signals }: SignalChartProps
       // DELTA - BB Breakouts
       const delta = signals.DELTA?.[timeframe];
       if (delta && delta.direction !== "NEUTRAL") {
-        const label = delta.label || "BB Break";
+        let label = delta.label || "BB Break";
+        if (delta.details?.is_squeeze) label += " (SQUEEZE)";
         const isBull = delta.direction === "LONG";
         markers.push({
           time: timeSec as Time,
